@@ -12,7 +12,7 @@ import shap
 
 # --- CONFIGURATION & CONSTANTS ---
 # NOTE: The data file name must match the output from data_augmenter.py
-data_file = r'C:\Users\janan\Downloads\FibroGuide-Flask-Chatbot\augmented_ipf_patient_data_1000.csv' 
+data_file = r'C:\Users\user\Documents\chatbot\augmented_ipf_patient_data_1000.csv' 
 ADE_MODEL_PATH = 'ade_classifier_logreg.pkl'
 EFFECTIVENESS_MODEL_PATH = 'effectiveness_regressor_rf.pkl'
 FEATURE_NAMES_PATH = 'feature_names.pkl'

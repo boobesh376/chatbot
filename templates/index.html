@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FibroGuide AI Chatbot</title>
+    <title>FibroGuide: IPF Chatbot</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">      
+
     <style>
-        /* INLINE STYLES TO POSITION BUTTONS NEXT TO EACH OTHER */
+        /* INLINE STYLES FOR BUTTON PLACEMENT (Copied from your previous HTML) */
         .settings-button-link {
             position: absolute;
             top: 15px;
@@ -24,44 +27,149 @@
         .settings-button-link:hover {
             background-color: #0d5cb3;
         }
-        /* Style for the image preview */
+        
+        /* Style for the image preview in the chat bar */
         #image-preview-container {
-            margin-top: 10px;
-            display: flex;
+            display: none; /* Controlled by JS */
             align-items: center;
-            gap: 10px;
-            padding: 5px;
+            padding: 5px 10px;
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 12px;
             background-color: #f9f9f9;
+            margin-right: 10px;
+            flex-shrink: 0;
+            max-width: 250px;
         }
         #image-preview {
-            max-width: 80px;
-            max-height: 80px;
+            max-width: 40px;
+            max-height: 40px;
             border-radius: 4px;
             object-fit: contain;
-            display: none; /* Hidden by default */
         }
         #file-name-display {
-            font-size: 0.9em;
+            font-size: 0.8em;
             color: #555;
-            flex-grow: 1;
+            margin-left: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .remove-image-button {
             background-color: #f44336;
             color: white;
             border: none;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            font-size: 0.8em;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7em;
             cursor: pointer;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+        .remove-image-button:hover {
+            background-color: #d32f2f;
+        }
+        
+        /* Fix the input area layout for the new style */
+        .input-area {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping if items don't fit */
+            align-items: flex-end;
+            width: 100%;
+            margin-top: 10px;
+            
+            /* NEW CHATGPT STYLE CONTAINER */
+            border: 1px solid #ccc;
+            border-radius: 25px; 
+            padding: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+            background-color: #fff;
+        }
+
+        .input-area textarea {
+            border: none;
+            min-height: 40px;
+            max-height: 200px;
+            padding: 10px;
+            margin: 0 5px;
+            resize: none;
+            flex-grow: 1; /* Allow textarea to take up remaining space */
+        }
+        
+        /* Ensure the button aligns with the new layout */
+        .input-area button {
+            width: auto;
+            align-self: flex-end;
+            flex-shrink: 0;
+        }
+        
+        /* ATTACHMENT MENU STYLES (Copied from previous response) */
+        .attach-menu-wrapper {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            padding-left: 5px;
+        }
+
+        .attach-button {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1.4em;
+            padding: 0 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .remove-image-button:hover {
-            background-color: #d32f2f;
+        .attach-button:hover {
+            color: #1a73e8; /* Primary Blue */
+        }
+
+        .upload-menu {
+            position: absolute;
+            bottom: 55px;
+            left: 0;
+            z-index: 10;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            min-width: 180px;
+            display: none;
+        }
+
+        .upload-menu[aria-hidden="false"] {
+            display: block;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 20px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #333;
+            font-size: 0.95em;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+
+        .menu-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            color: #1a73e8; 
         }
 
     </style>
@@ -72,7 +180,6 @@
         <a href="{{ url_for('settings_page') }}" class="settings-button-link">
             Settings
         </a>
-        
         <a href="{{ url_for('logout') }}" class="logout-button">
             Logout
         </a>
@@ -99,33 +206,45 @@
         </div>
 
         <div class="input-area">
-            <!-- New: Image Upload Section --><div style="margin-bottom: 10px;">
-                <label for="image-upload" class="upload-button">
-                    📸 Upload Prescription / Take Photo
-                </label>
-                <!-- capture="environment" suggests opening the back camera on mobile devices --><input type="file" id="image-upload" accept="image/*" capture="environment" class="hidden-file-input" onchange="displayFileName(this)">
+            
+            <div class="attach-menu-wrapper">
+                <button id="attach-toggle" class="attach-button" aria-expanded="false" aria-controls="upload-menu">
+                    <i class="fas fa-plus"></i>
+                </button>
+                
+                <div id="upload-menu" class="upload-menu" role="menu" aria-hidden="true">
+                    
+                    <label class="menu-item" for="upload-file-input">
+                        <i class="fas fa-file-upload"></i> Upload File
+                    </label>
+                    <input type="file" id="upload-file-input" style="display: none;" accept="image/*" onchange="displayFile(this)">
+                    
+                    <button id="take-photo-button" class="menu-item" style="display: none;">
+                        <i class="fas fa-camera"></i> Take Photo
+                    </button>
+                </div>
             </div>
             
-            <!-- Image Preview Container --><div id="image-preview-container" style="display: none;">
-                <img id="image-preview" src="#" alt="Image Preview" style="display: none;">
+            <div id="image-preview-container">
+                <img id="image-preview" src="#" alt="Image Preview">
                 <span id="file-name-display"></span>
                 <button type="button" class="remove-image-button" onclick="removeImage()">✖</button>
             </div>
-
+            
             <textarea id="user-input" placeholder="Enter patient details or a general query..."></textarea>
+            
             <button onclick="sendQuery()">Send</button>
         </div>
         
     </div>
 
 <script>
-    let base64Image = null; // Stores the Base64 image data
+    let base64Image = null; // Stores the Base64 image data (CLEANED)
     let currentChatTone = 'clinical'; // Default tone, fetched from settings
 
-    // --- Utility Functions ---
+    // --- UTILITY AND HISTORY FUNCTIONS (Keeping your existing logic) ---
 
     function getChatTone() {
-        // In a real app, this would be fetched from localStorage or Flask session
         return localStorage.getItem('chatTone') || 'clinical'; 
     }
 
@@ -138,30 +257,28 @@
         const chatWindow = document.getElementById('chat-window');
         const messageDiv = document.createElement('div');
         
-        // Remove initial message if it's the first real message
         if (chatWindow.querySelector('.initial-message') && sender !== 'bot-processing') {
             chatWindow.innerHTML = '';
         }
         
         if (sender === 'user') {
             messageDiv.className = 'message user-message';
-            messageDiv.innerText = content;
+            // Use innerHTML to respect any image placeholders added in sendQuery
+            messageDiv.innerHTML = content; 
         } else if (isReport) {
             messageDiv.className = 'message report-card';
             messageDiv.innerHTML = content;
         } else if (sender === 'bot-processing') {
-            // Special styling for processing messages
             messageDiv.className = 'message bot-message processing-message';
             messageDiv.innerText = content;
         } else {
             messageDiv.className = 'message bot-message';
-            messageDiv.innerHTML = content; // Use innerHTML for bot responses to render line breaks and HTML
+            messageDiv.innerHTML = content;
         }
         
         chatWindow.appendChild(messageDiv);
         scrollToBottom();
         
-        // Save history (excluding processing messages)
         if (sender !== 'bot-processing') {
             saveHistory();
         }
@@ -180,9 +297,8 @@
             chatWindow.innerHTML = history;
             scrollToBottom();
         } else {
-            // If no history, ensure the initial message is there
-            if (!chatWindow.querySelector('.initial-message')) {
-                chatWindow.innerHTML = `
+             if (!chatWindow.querySelector('.initial-message')) {
+                 chatWindow.innerHTML = `
                     <div class="message bot-message initial-message">
                         Hello! I'm FibroGuide, your Clinical Decision Support Assistant. How can I assist with IPF data or answer a question today?
                     </div>
@@ -191,47 +307,51 @@
         }
     }
 
-    // Converts an uploaded File object to a Base64 string
+    // CRITICAL FIX 1: Converts an uploaded File object to a Base64 string (without prefix)
     function fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]); // Only send the base64 part
+            reader.onload = () => {
+                // IMPORTANT: Split and get the second part to remove the "data:image/jpeg;base64," prefix
+                const cleanedBase64 = reader.result.split(',')[1];
+                resolve(cleanedBase64);
+            }; 
             reader.onerror = error => reject(error);
         });
     }
 
-    // Displays the selected file name and converts it to Base64
-    async function displayFileName(input) {
+    // CRITICAL FIX 2: Displays the selected file and converts it to Base64
+    async function displayFile(input) {
         const fileNameDisplay = document.getElementById('file-name-display');
         const imagePreview = document.getElementById('image-preview');
         const previewContainer = document.getElementById('image-preview-container');
         const file = input.files[0];
         
+        // Hide menu after file selection
+        document.getElementById('attach-toggle').setAttribute('aria-expanded', 'false');
+        document.getElementById('upload-menu').setAttribute('aria-hidden', 'true');
+        
         if (file) {
-            // Check size (Max 5MB for Gemini Vision)
-            if (file.size > 5 * 1024 * 1024) {
+            if (file.size > 5 * 1024 * 1024) { // Max 5MB for Gemini Vision
                 alert("File size exceeds 5MB. Please choose a smaller file.");
-                input.value = ""; // Clear the input
-                fileNameDisplay.textContent = "No file selected. (Max 5MB)";
-                imagePreview.style.display = 'none';
-                previewContainer.style.display = 'none';
-                base64Image = null;
+                input.value = ""; 
+                removeImage();
                 return;
             }
             
             fileNameDisplay.textContent = file.name;
-            previewContainer.style.display = 'flex'; // Show container
+            previewContainer.style.display = 'flex'; 
 
             // Display image preview
             const reader = new FileReader();
             reader.onload = (e) => {
                 imagePreview.src = e.target.result;
-                imagePreview.style.display = 'block'; // Show image
+                imagePreview.style.display = 'block'; 
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(file); // Reads file to display preview (with prefix)
 
-            // Convert and store the base64 data
+            // Convert and store the CLEANED base64 data for the API call
             try {
                 base64Image = await fileToBase64(file);
             } catch (error) {
@@ -241,15 +361,12 @@
             }
 
         } else {
-            fileNameDisplay.textContent = "No file selected.";
-            imagePreview.style.display = 'none';
-            previewContainer.style.display = 'none';
-            base64Image = null;
+            removeImage();
         }
     }
 
     function removeImage() {
-        document.getElementById('image-upload').value = ''; // Clear file input
+        document.getElementById('upload-file-input').value = ''; // Clear file input
         document.getElementById('file-name-display').textContent = '';
         document.getElementById('image-preview').src = '#';
         document.getElementById('image-preview').style.display = 'none';
@@ -258,34 +375,36 @@
     }
 
 
-    // --- Main Chat Submission Handler ---
+    // --- Main Chat Submission Handler (CRITICAL FIX 3) ---
     async function sendQuery() {
         const userInputElement = document.getElementById('user-input');
         const userQuery = userInputElement.value.trim();
         
-        // CRITICAL CHECK: Ensure there is either text or an image
         if (!userQuery && !base64Image) {
             alert("Please enter patient data or upload a prescription image to start the XAI analysis.");
             return;
         }
 
-        // --- FINAL ROBUST LOGIC FOR BACKEND PROMPT (This is the fix) ---
+        // --- FINAL ROBUST LOGIC FOR BACKEND PROMPT ---
         let finalQueryText = userQuery;
         let userMessageContent = userQuery;
         
         if (base64Image) {
-            // Case 1: Image is provided (with or without text). This is the key instruction.
-            // Tell Gemini explicitly to read the image for medications AND read the text for labs/age.
+            // If image is provided, construct a detailed instruction for Gemini.
+            // This is the instruction that gets sent to the API along with the image
             finalQueryText = `
                 **INSTRUCTION FOR XAI:** Analyze the patient profile.
                 1. EXTRACT: All medication names and dosages from the attached image.
                 2. EXTRACT: Age, Total Meds (if not in image), Alpha Diversity, Microbial Metabolite A Level, Bacteroides Abundance, and Firmicutes Abundance from the following TEXT: "${userQuery}"
                 3. PROVIDE: A single pipe-separated list of ALL extracted data for parsing.
             `.trim();
-            userMessageContent = userQuery + " (Image Attached)";
+            
+            // This is what the user sees in the chat window
+            userMessageContent = (userQuery ? userQuery + " " : "") + 
+                                 `<span class="image-indicator">(Image: ${document.getElementById('file-name-display').textContent || 'Attached'})</span>`;
 
         } else {
-            // Case 2: ONLY text is provided (Standard XAI or General Chat)
+            // ONLY text is provided (Standard XAI or General Chat)
             finalQueryText = userQuery;
             userMessageContent = userQuery;
         }
@@ -295,8 +414,9 @@
         // 1. Display User Message 
         addMessage('user', userMessageContent);
         userInputElement.value = '';
+        userInputElement.style.height = 'auto'; // Reset textarea height
+
         
-        // Show processing message
         const processingMessage = "Processing request... (Analysis may take a few seconds)";
         addMessage('bot-processing', processingMessage);
 
@@ -308,8 +428,8 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    query: finalQueryText, // Use the final, instruction-heavy query for the backend
-                    image_data: base64Image, 
+                    query: finalQueryText, 
+                    image_data: base64Image, // Send CLEANED base64 data (null if not set)
                     chat_tone: getChatTone() 
                 }),
             });
@@ -327,72 +447,104 @@
             if (response.ok) {
                 const isReport = data.response.includes("FibroGuide XAI Analysis Report");
                 addMessage('bot', data.response, isReport);
-
             } else {
-                // If the server returns an error (like the one you saw before)
                 addMessage('bot', '❌ ERROR: ' + (data.error || data.response || "An unknown error occurred."));
             }
 
         } catch (error) {
             console.error('Network or Fetch Error:', error);
-            // Remove processing message even on network error
             const chatWindow = document.getElementById('chat-window');
             const processingMsgDiv = chatWindow.querySelector('.processing-message:last-child');
             if (processingMsgDiv) {
                 chatWindow.removeChild(processingMsgDiv);
             }
             addMessage('bot', '❌ FATAL ERROR: Could not connect to the Flask server. Check your console and server status.');
-
         } finally {
-            // Clear file input/base64 data after submission
-            removeImage(); // This function now handles clearing the input and preview
+            removeImage(); // Clear file input/base64 data after submission
         }
     }
-
-    // --- INITIALIZATION ---
+    
+    // --- NEW UI INTERACTIVITY LOGIC ---
     document.addEventListener('DOMContentLoaded', () => {
         loadHistory();
         
-        // Handle theme loading (if you add dark mode settings later)
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
+        const attachToggle = document.getElementById('attach-toggle');
+        const uploadMenu = document.getElementById('upload-menu');
+        const takePhotoButton = document.getElementById('take-photo-button');
+        const userInputElement = document.getElementById('user-input');
 
-        // Handle download history trigger from settings page
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('download') === 'true') {
-            history.replaceState({}, document.title, window.location.pathname); // Clean URL
-            downloadChatHistory(); 
-        }
-    });
-
-    function downloadChatHistory() {
-        const chatWindow = document.getElementById('chat-window');
-        const messages = chatWindow.querySelectorAll('.message:not(.processing-message)'); // Exclude processing messages
-        let historyText = "--- FibroGuide IPF Chat History ---\n";
-        historyText += "Date: " + new Date().toLocaleString() + "\n\n";
-
-        messages.forEach(msg => {
-            sender = msg.classList.contains('user-message') ? "USER" : "BOT";
-            let content = msg.innerText.trim();
-            // Basic check if it's a report card, add a header
-            if (msg.classList.contains('report-card') || content.includes('FibroGuide XAI Analysis Report')) {
-                content = "--- XAI ANALYSIS REPORT ---\n" + content;
-            }
-            historyText += `[${sender}]: ${content}\n\n`;
+        // Auto-resize textarea
+        userInputElement.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
         });
         
-        const blob = new Blob([historyText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `FibroGuide_Chat_History_${new Date().toISOString().slice(0, 10)}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
+        // 1. Check for Camera Access
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    const hasCamera = devices.some(device => device.kind === 'videoinput');
+                    if (hasCamera) {
+                        takePhotoButton.style.display = 'flex'; 
+                    }
+                });
+        }
+        
+        // 2. Menu Toggle Logic
+        attachToggle.addEventListener('click', function() {
+            const isExpanded = attachToggle.getAttribute('aria-expanded') === 'true';
+            attachToggle.setAttribute('aria-expanded', !isExpanded);
+            uploadMenu.setAttribute('aria-hidden', isExpanded);
+        });
+
+        // 3. Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!uploadMenu.contains(event.target) && !attachToggle.contains(event.target)) {
+                attachToggle.setAttribute('aria-expanded', 'false');
+                uploadMenu.setAttribute('aria-hidden', 'true');
+            }
+        });
+        
+        // 4. Handle Take Photo button click (Just a placeholder for now)
+        takePhotoButton.addEventListener('click', function() {
+            alert("Camera feature needs advanced implementation (e.g., streaming video feed). Please use 'Upload File' for images.");
+            attachToggle.setAttribute('aria-expanded', 'false');
+            uploadMenu.setAttribute('aria-hidden', 'true');
+        });
+        
+        // --- Download History Logic ---
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('download') === 'true') {
+            history.replaceState({}, document.title, window.location.pathname);
+            downloadChatHistory(); 
+        }
+        
+        function downloadChatHistory() {
+            const chatWindow = document.getElementById('chat-window');
+            const messages = chatWindow.querySelectorAll('.message:not(.processing-message)');
+            let historyText = "--- FibroGuide IPF Chat History ---\n";
+            historyText += "Date: " + new Date().toLocaleString() + "\n\n";
+
+            messages.forEach(msg => {
+                sender = msg.classList.contains('user-message') ? "USER" : "BOT";
+                let content = msg.innerText.trim();
+                if (msg.classList.contains('report-card') || content.includes('FibroGuide XAI Analysis Report')) {
+                    content = "--- XAI ANALYSIS REPORT ---\n" + content;
+                }
+                historyText += `[${sender}]: ${content}\n\n`;
+            });
+            
+            const blob = new Blob([historyText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `FibroGuide_Chat_History_${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    });
 
 </script>
 </body>

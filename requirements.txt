@@ -6,3 +6,4 @@ pandas
 joblib
 python-dotenv
 werkzeug
+shap
