@@ -1,0 +1,377 @@
+/* * --------------------------------------------------
+ * FibroGuide XAI Chatbot - CHAT BUBBLE UI
+ * --------------------------------------------------
+ * Color Palette: 
+ * Primary Blue (Trust/Data): #1a73e8
+ * Secondary Green (Health/Success): #34a853
+ * Background: #e6f7ff (Vibrant Light Blue/Cyan)
+ * Accent: #ff66b2 (Pink/Magenta for visual pop)
+ */
+
+/* === BASE STYLES & LAYOUT === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e6f7ff; /* Vibrant Light Blue Background */
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; 
+    min-height: 100vh;
+}
+
+.container {
+    background: #ffffff;
+    padding: 30px;
+    margin-top: 30px;
+    border-radius: 16px; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); 
+    width: 95%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    /* ADDED for absolute positioning of the logout button */
+    position: relative;
+}
+
+/* === TYPOGRAPHY & HEADERS === */
+h1 {
+    color: #1a73e8; /* Primary Blue */
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 2.2em;
+    border-bottom: 3px solid #ff66b2; /* Accent Pink Separator */
+    padding-bottom: 10px;
+}
+
+/* === INSTRUCTION & EXAMPLE AREA === */
+.instructions {
+    background-color: #f0f8ff; 
+    border-left: 5px solid #1a73e8; 
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+/* FIX: Reduce spacing in Instruction Block */
+.instructions p {
+    margin-top: 5px;    /* Reduced top margin for paragraphs */
+    margin-bottom: 5px; /* Reduced bottom margin for paragraphs */
+    line-height: 1.4;   /* Slightly tighter line spacing */
+    color: #333; /* Ensure text is dark */
+}
+
+.instructions pre {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.example-input {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #ffe0f0; /* Soft Pink for Code Block */
+    border: 1px solid #ff66b2;
+    border-radius: 6px;
+    font-size: 0.9em;
+    white-space: pre-wrap; 
+}
+
+/* -------------------------------------------
+ * CHAT WINDOW AND BUBBLE STYLING
+ * ------------------------------------------- */
+
+#chat-window {
+    height: 450px; /* Fixed height for scrolling */
+    overflow-y: auto;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    background-color: #f8f8ff; /* Very light background for chat */
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    padding: 10px 15px;
+    border-radius: 18px;
+    max-width: 80%;
+    margin-bottom: 12px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* User Bubble (Aligned Right) */
+.user-message {
+    background-color: #d1e7ff; /* Light blue/gray for user */
+    color: #333;
+    margin-left: auto; /* Push to the right */
+    border-bottom-right-radius: 2px;
+}
+
+/* Bot Bubble (Aligned Left) - General Chat */
+.bot-message {
+    background-color: #ffffff; /* White for bot conversation */
+    color: #333;
+    margin-right: auto; /* Align to the left */
+    border: 1px solid #e0e0e0;
+    border-bottom-left-radius: 2px;
+}
+
+/* XAI Report Card (Aligned Left, Distinct Style) */
+.report-card {
+    background-color: #e9f2ff; /* Analysis background color */
+    border: 2px solid #1a73e8;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 15px 0;
+    margin-right: auto; 
+    max-width: 95%;
+    box-shadow: 0 4px 8px rgba(26, 115, 232, 0.2);
+    white-space: pre-wrap; /* Crucial for preserving report formatting */
+}
+
+.report-card .analysis-header {
+    font-size: 1.2em;
+    font-weight: 900;
+    color: #ff66b2; /* Pink accent color */
+    margin-bottom: 10px;
+    display: block;
+}
+
+
+/* -------------------------------------------
+ * INPUT AND BUTTON STYLING
+ * ------------------------------------------- */
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+textarea {
+    flex-grow: 1;
+    padding: 15px;
+    border: 2px solid #1a73e8; 
+    border-radius: 10px;
+    resize: none; /* Prevent manual resizing */
+    min-height: 60px;
+    font-size: 16px;
+}
+
+button {
+    background-color: #34a853; /* Success Green */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.1s;
+    width: 150px; /* Fixed width for button */
+    align-self: flex-end; /* Align button to the bottom of the input area */
+}
+
+button:hover {
+    background-color: #ff66b2; /* Pink/Magenta Hover */
+    transform: translateY(-1px);
+}
+
+/* --- LOGOUT BUTTON (TOP RIGHT) --- */
+.logout-button {
+    /* Styles inherited from standard button for look */
+    background-color: #ff66b2; 
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none; 
+    display: inline-block; 
+    transition: background-color 0.3s, transform 0.1s;
+
+    /* POSITIONING FIX */
+    position: absolute;
+    top: 15px; /* Adjust distance from the top */
+    right: 15px; /* Adjust distance from the right */
+    z-index: 10; /* Ensure it stays above other elements */
+}
+
+.logout-button:hover {
+    background-color: #1a73e8; /* Primary Blue Hover */
+    transform: translateY(-1px);
+}
+
+/* --- DISCLAIMER STYLING FIX --- */
+.disclaimer-word {
+    color: #ff66b2; /* Accent Pink */
+    font-weight: 700;
+    margin-right: 5px; /* Adds space after the word */
+}
+
+.disclaimer-paragraph {
+    /* Use a light gray dashed border below to separate it from the example block */
+    border-bottom: 1px dashed #ccc; 
+    
+    /* PADDING INCREASED: Creates space between the text and the dashed line */
+    padding-bottom: 15px; 
+    
+    /* MARGIN ADJUSTED: Provides space before the next section */
+    margin-bottom: 15px; 
+    
+    /* Ensure text color is readable */
+    color: #333; 
+}
+
+/* -------------------------------------------
+ * DARK MODE STYLING
+ * ------------------------------------------- */
+body.dark-mode {
+    background-color: #121212; /* Dark background */
+    color: #f0f0f0; /* Light text */
+}
+
+body.dark-mode .container {
+    background: #1e1e1e;
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode h1 {
+    color: #64b5f6; /* Lighter blue primary */
+    border-bottom: 3px solid #f48fb1; /* Lighter pink accent */
+}
+
+body.dark-mode .instructions {
+    background-color: #2c2c2c;
+    border-left: 5px solid #64b5f6;
+    color: #ccc;
+}
+
+body.dark-mode .instructions p,
+body.dark-mode .setting-label,
+body.dark-mode .auth-form label {
+    color: #ccc;
+}
+
+body.dark-mode .example-input {
+    background-color: #383838;
+    border: 1px solid #f48fb1;
+    color: #f0f0f0;
+}
+
+body.dark-mode #chat-window {
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+}
+
+body.dark-mode .bot-message {
+    background-color: #282828;
+    color: #f0f0f0;
+    border: 1px solid #444;
+}
+
+body.dark-mode .user-message {
+    background-color: #3b507d; /* Darker blue for user */
+    color: #f0f0f0;
+}
+
+body.dark-mode .report-card {
+    background-color: #283656; /* Dark analysis background */
+    border: 2px solid #64b5f6;
+    box-shadow: 0 4px 8px rgba(100, 181, 246, 0.2);
+}
+
+body.dark-mode .report-card .analysis-header {
+    color: #f48fb1; /* Lighter pink accent */
+}
+
+body.dark-mode .disclaimer-paragraph {
+    border-bottom: 1px dashed #666; 
+    color: #ccc;
+}
+
+/* ADDED FIXES FOR WHITE ELEMENTS AND INVISIBLE TEXT IN DARK MODE */
+
+/* 1. Fix: Input Fields (Top issue in settings, bottom issue in chat input) */
+body.dark-mode textarea,
+body.dark-mode input[type="email"],
+body.dark-mode input[type="password"] {
+    background-color: #383838; /* Darker gray background */
+    color: #f0f0f0; /* Light text color */
+    border: 2px solid #64b5f6; /* Lighter Blue border for focus */
+}
+
+/* 2. Fix: Model Information Read-Only Boxes (The 'white thing' in settings) */
+body.dark-mode .model-info-value {
+    background-color: #383838; /* Dark gray background */
+    color: #f0f0f0; /* Light text color */
+}
+
+/* 3. Fix: Dropdowns (Chat Tone selector) */
+body.dark-mode .setting-control select {
+    background-color: #383838; /* Dark gray background */
+    color: #f0f0f0; /* Light text color */
+    border: 1px solid #666; /* Subtle dark border */
+}
+
+/* 4. Fix: Auth Page Input Borders and Text (If navigating back to login/register) */
+body.dark-mode .auth-form input[type="email"]:focus,
+body.dark-mode .auth-form input[type="password"]:focus {
+    border-color: #64b5f6; /* Use Lighter Blue Primary on focus */
+}
+
+/* 5. Fix: Ensure specific Dark Mode elements use a light color */
+body.dark-mode .back-link,
+body.dark-mode .auth-links a {
+    color: #64b5f6 !important; /* Lighter primary blue for links */
+}
+
+/* --- FIX: TARGETING SETTINGS PAGE WHITE ELEMENTS --- */
+
+body.dark-mode .settings-section {
+    /* Target the container background */
+    background-color: #1e1e1e; /* Match the main container dark background */
+    border: 1px solid #444; /* Darker, less distracting border */
+}
+
+body.dark-mode .settings-section h2 {
+    /* Ensure section headers stay visible */
+    color: #64b5f6; /* Lighter blue primary */
+    border-bottom: 2px solid #f48fb1; /* Lighter pink accent */
+}
+
+body.dark-mode .setting-label {
+    /* Ensure the labels are visible */
+    color: #ccc !important;
+}
+
+body.dark-mode .setting-item {
+    /* Change the subtle divider line */
+    border-bottom: 1px solid #333;
+}
+
+body.dark-mode .model-info-value {
+    /* FIX: Ensure the LLM/ML model info box is dark */
+    background-color: #383838;
+    color: #f0f0f0;
+}
+
+body.dark-mode .setting-control select {
+    /* FIX: Ensure the dropdown background is dark */
+    background-color: #383838;
+    color: #f0f0f0;
+    border: 1px solid #666;
+}
+
+body.dark-mode .back-link {
+    /* Ensure the back link is visible */
+    color: #64b5f6 !important;
+}

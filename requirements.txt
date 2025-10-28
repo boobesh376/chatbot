@@ -1,0 +1,8 @@
+# requirements.txt
+flask
+flask-sqlalchemy
+google-genai
+pandas
+joblib
+python-dotenv
+werkzeug

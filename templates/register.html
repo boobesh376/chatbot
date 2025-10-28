@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register for FibroGuide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Specific styles for the login/register forms to match your theme */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e6f7ff; /* Consistent with main app */
+            margin: 0;
+            padding: 0;
+        }
+        .auth-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); 
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .auth-container h2 {
+            color: #1a73e8; /* Primary Blue */
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .auth-container p {
+            color: #555;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .auth-form label {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: -5px; /* Adjust spacing */
+            display: block;
+        }
+        .auth-form input[type="email"],
+        .auth-form input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #a0c3ff; /* Lighter blue border */
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box; /* Include padding in width */
+            transition: border-color 0.3s ease;
+        }
+        .auth-form input[type="email"]:focus,
+        .auth-form input[type="password"]:focus {
+            border-color: #1a73e8; /* Primary Blue on focus */
+            outline: none;
+        }
+        .auth-form button {
+            background-color: #1a73e8; /* Primary Blue */
+            color: white;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+            margin-top: 10px;
+        }
+        .auth-form button:hover {
+            background-color: #ff66b2; /* Accent Pink on hover */
+            transform: translateY(-1px);
+        }
+        .auth-links {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #555;
+        }
+        .auth-links a {
+            color: #1a73e8; /* Primary Blue for links */
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        .logo-placeholder {
+            width: 60px;
+            height: 60px;
+            background-color: #ff66b2; /* Accent Pink for logo square */
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            color: white;
+            font-weight: bold;
+        }
+        .error-message {
+            color: #d9534f; /* A standard error red */
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo-placeholder">🩺</div> <h2>Join FibroGuide!</h2>
+        <p>Create your account and start building</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="error-message {{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="your@example.com" required>
+            
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Minimum 6 characters" required>
+            
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+            
+            <button type="submit">Create Account &rarr;</button>
+        </form>
+        
+        <div class="auth-links">
+            Already have an account? <a href="{{ url_for('login') }}">Sign In Instead</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FibroGuide Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Specific Styles for Settings Page */
+        .settings-section {
+            background-color: #f8f8ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #e0e0e0;
+        }
+        .settings-section h2 {
+            color: #1a73e8;
+            border-bottom: 2px solid #ff66b2;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        .setting-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .setting-control select, .setting-control input[type="button"] {
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+        /* Style for the 'Print Chat' / 'Clear History' buttons */
+        .settings-button {
+            background-color: #34a853; /* Success Green */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .settings-button.clear-btn {
+            background-color: #d9534f; /* Error Red for clearing data */
+        }
+        .settings-button:hover {
+            opacity: 0.9;
+        }
+        /* Model info style */
+        .model-info-value {
+            font-family: monospace;
+            background-color: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        /* Link back to chat */
+        .back-link {
+            display: block;
+            margin: 0 0 20px 0;
+            text-align: left;
+            font-size: 1.1em;
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* --- Toggle Switch CSS (Moved here from the script block) --- */
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 50px;
+          height: 24px;
+        }
+        .switch input { 
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+          border-radius: 24px;
+        }
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 16px;
+          width: 16px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+          border-radius: 50%;
+        }
+        input:checked + .slider {
+          background-color: #1a73e8; /* Primary Blue when checked */
+        }
+        input:checked + .slider:before {
+          transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('chat_page') }}" class="back-link">&larr; Back to Chatbot</a>
+
+        <h1> ⚙️ Application Settings</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="instructions" style="border-left: 5px solid {% if category == 'success' %}#34a853{% else %}#ff66b2{% endif %}; margin-top: 15px;">
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="settings-section">
+            <h2>Account</h2>
+            <div class="setting-item">
+                <span class="setting-label">Logged in as:</span>
+                <span class="model-info-value">{{ session.get('user_email', 'User') }}</span>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Logout Session</span>
+                <a href="{{ url_for('logout') }}" class="settings-button clear-btn">Logout</a>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>AI and Chat Controls</h2>
+            
+            <div class="setting-item">
+                <span class="setting-label">Chat Tone/Personality:</span>
+                <div class="setting-control">
+                    <select id="chatTone">
+                        <option value="clinical">Clinical/Concise (Default)</option>
+                        <option value="supportive">Supportive/Friendly</option>
+                        <option value="detailed">Detailed/Educational</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <span class="setting-label">Theme Toggle (Light/Dark Mode):</span>
+                <div class="setting-control">
+                    <label class="switch">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('clear_chat_history') }}" class="setting-item">
+                <span class="setting-label">Clear Chat History:</span>
+                <div class="setting-control">
+                    <button type="submit" class="settings-button clear-btn"
+                            onclick="localStorage.removeItem('chatHistory');">
+                        Clear History
+                    </button>
+                </div>
+            </form>
+
+            <div class="setting-item">
+                <span class="setting-label">Download Chat History:</span>
+                <div class="setting-control">
+                    <a href="{{ url_for('chat_page', download='true') }}" class="settings-button" style="text-decoration: none;">Download Chat</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>Model Information (Transparency)</h2>
+            <div class="setting-item">
+                <span class="setting-label">LLM (Chat) Model:</span>
+                <span class="model-info-value">gemini-2.5-flash</span>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">ML (Risk) Model:</span>
+                <span class="model-info-value">ade_risk_model.joblib</span>
+            </div>
+        </div>
+    </div>
+    
+<script>
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    const chatToneSelect = document.getElementById('chatTone'); // Ensure this element is retrieved
+
+    // --- DARK MODE LOGIC (Correct) ---
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        body.classList.add('dark-mode');
+        themeToggle.checked = true;
+    }
+
+    themeToggle.addEventListener('change', () => {
+        if (themeToggle.checked) {
+            body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            body.classList.remove('dark-mode');
+            localStorage.setItem('theme', 'light');
+        }
+    });
+    // --- END DARK MODE LOGIC ---
+
+    // --- CHAT TONE LOGIC (Corrected to ensure the display updates) ---
+    
+    // 1. Function to load the saved tone
+    function loadChatTone() {
+        const savedTone = localStorage.getItem('chatTone') || 'clinical';
+        // Set the dropdown's value to the saved tone
+        chatToneSelect.value = savedTone;
+    }
+
+    // 2. Event listener to save the tone when selection changes
+        chatToneSelect.addEventListener('change', () => {
+            const selectedTone = chatToneSelect.value;
+            localStorage.setItem('chatTone', selectedTone);
+            // The pop-up has been removed for a seamless user experience.
+        });
+
+    // Run the load function after initialization
+    loadChatTone();
+    // --- END CHAT TONE LOGIC ---
+</script>
+</body>
+</html>
